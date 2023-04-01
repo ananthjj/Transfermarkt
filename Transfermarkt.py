@@ -17,7 +17,7 @@ driver.get(url)
 soup = BeautifulSoup(driver.page_source, 'html.parser')
 
 table = soup.find('table', {'class': 'items'})
-rows = table.find_all('tr', {'class': ['odd', 'even selected']})
+rows = table.find_all('tr', {'class': ['odd', 'even', 'odd selected','even selected']})
 
 seasons = []
 injuries = []
