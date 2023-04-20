@@ -1,3 +1,7 @@
+# Author: ananthjj
+# Date: 4/20/23
+# Transfermarkt.us Detailed Injury History Web Scraper
+
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -73,4 +77,3 @@ while True:
     if url.lower() == "quit":
         break
     get_injury_data(url)
-    

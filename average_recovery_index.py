@@ -1,3 +1,7 @@
+# Author: ananthjj
+# Date: 4/20/23
+# Transfermarkt.us Detailed Injury History Web Scraper with Average Recovery Index
+
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
