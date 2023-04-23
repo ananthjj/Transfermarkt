@@ -14,13 +14,7 @@ urls = ['https://www.transfermarkt.us/marc-andre-ter-stegen/verletzungen/spieler
 class injuryDataCreator():
     def __init__(self, filename):
         self.inputfile = filename
-        data = {
-            'playerEncodedName': [],
-            'Id': [],
-            'injuries': [],
-            'season': []
-        }
-        self.injuriesDf = pd.DataFrame(data)
+        self.injuriesDf = None
         self.fill = 0
         if filename.split('.')[-1] == "txt":
             self.fill = 1
@@ -30,9 +24,29 @@ class injuryDataCreator():
     def get_file_extension(filename):
         return filename.split('.')[-1]
 
-    def load():
-        if self.fill ==
+    def load(self):
+        assert self.fill != 0, 'Fill cannot be zero.'
+        if self.fill == 2:
+            self.loadCsv()
+        else:
+            self.loadTxt()
     
+    def loadCsv(self):
+        self.injuriesDf = pd.read_csv(self.filename)
+
+    def loadTxt(self):
+        data = {
+            'playerEncodedName': [],
+            'Id': [],
+            'injuries': [],
+            'season': []
+        }
+        self.injuriesDf = pd.DataFrame(data)
+        with open(self.filename, 'r') as f:
+            for line in f:
+                self.get_injury_data(line.strip())
+        
+
     def add_data(self, player_encoded_name, player_id, injuries, season):
         match = self.injuriesDf[(self.injuriesDf['playerEncodedName'] == player_encoded_name) & (self.injuriesDf['season'] == season)]
         if not match.empty:
@@ -52,7 +66,7 @@ class injuryDataCreator():
             self.injuriesDf = self.injuriesDf.append(new_row, ignore_index=True)
 
 
-    def get_injury_data(url):
+    def get_injury_data(self, url):
         options = Options()
         options.headless = True  # run Chrome in headless mode
 
