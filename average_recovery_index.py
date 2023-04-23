@@ -6,6 +6,9 @@ from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
+import csv
+
+urls = ['https://www.transfermarkt.us/marc-andre-ter-stegen/verletzungen/spieler/74857/', 'https://www.transfermarkt.us/ronald-araujo/verletzungen/spieler/480267', 'https://www.transfermarkt.us/andreas-christensen/verletzungen/spieler/196948']
 
 def get_injury_data(url):
     options = Options()
@@ -22,6 +25,8 @@ def get_injury_data(url):
     dates_to = []
     days_out = []
     games_missed = []
+
+    index = 0
 
     recovery_indices = []
 
@@ -185,7 +190,7 @@ def get_injury_data(url):
     # Calculate the Recovery Index for each injury
     recovery_ratios = []
     for i, injury in enumerate(injuries):
-        if dates_to[i] is not None:  # Only consider injuries with valid end dates
+        if dates_to[i] is not None and dates_from[i] is not None: # Only consider injuries with valid end dates
             # Increment the count of injuries in the season for the current injury
             seasons_dict[season]['count'] += 1
 
@@ -206,12 +211,29 @@ def get_injury_data(url):
 
     # Calculate the average recovery index
     average_recovery_index = sum(recovery_ratios) / len(recovery_ratios) if recovery_ratios else 0
-    print(f"Average Recovery Index: {average_recovery_index}")
+    try:
+        index = average_recovery_index
+    except:
+        return None
 
     driver.quit()
 
-while True:
-    url = input("Enter the URL of the player's injury history on Transfermarkt: ")
-    if url.lower() == "quit":
-        break
-    get_injury_data(url)
+for url in urls:
+    try:
+        get_injury_data(url)
+    except:
+        #print(f"An error occurred while processing {url}. Skipping to next URL.")
+        continue
+
+with open('url_index.csv', mode='w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerow(['URL', 'Index'])
+    
+    for url in urls:
+        try:
+            index = get_injury_data(url)
+            if index is not None:
+                writer.writerow([url, index])
+        except:
+            print(f"An error occurred while processing {url}. Skipping to next URL.")
+            continue

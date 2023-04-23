@@ -1,0 +1,49 @@
+import requests
+from bs4 import BeautifulSoup
+from queue import Queue
+import re
+import time
+
+def get_soup(url):
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36'}
+    response = requests.get(url, headers=headers)
+    return BeautifulSoup(response.content, 'html.parser')
+
+def get_player_urls(soup):
+    player_urls = []
+    for link in soup.find_all('a', href=True):
+        href = link['href']
+        if href.startswith('http'):
+            new_url = href
+        else:
+            new_url = f"https://www.transfermarkt.us{href}"
+        if new_url not in visited and new_url not in to_visit.queue:
+            to_visit.put(new_url)
+    return player_urls
+
+starting_url = "https://www.transfermarkt.us/"
+
+to_visit = Queue()
+visited = set()
+
+to_visit.put(starting_url)
+
+player_links = set()
+
+url_pattern = re.compile(r'https://www\.transfermarkt\.us/[^/]+/verletzungen/spieler/\d+')
+
+while not to_visit.empty():
+    url = to_visit.get()
+    visited.add(url)
+
+    soup = get_soup(url)
+
+    player_links.update(get_player_urls(soup))
+
+    for link in soup.find_all('a', href=True):
+        new_url = f"https://www.transfermarkt.us{link['href']}"
+        if new_url not in visited and new_url not in to_visit.queue:
+            to_visit.put(new_url)
+            if url_pattern.match(new_url):
+                print(new_url)  # Print the discovered URL following the format
+    time.sleep(2)  # Add a 2-second delay between requests
