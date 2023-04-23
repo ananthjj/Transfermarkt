@@ -44,7 +44,7 @@ class injuryDataCreator():
         self.injuriesDf = pd.DataFrame(data)
         with open(self.filename, 'r') as f:
             for line in f:
-                self.get_injury_data(line.strip())
+                self.add_injury_data(line.strip())
         
 
     def add_data(self, player_encoded_name, player_id, injuries, season):
@@ -66,7 +66,7 @@ class injuryDataCreator():
             self.injuriesDf = self.injuriesDf.append(new_row, ignore_index=True)
 
 
-    def get_injury_data(self, url):
+    def add_injury_data(self, url):
         options = Options()
         options.headless = True  # run Chrome in headless mode
 
