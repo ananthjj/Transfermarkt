@@ -43,7 +43,7 @@ class injuryDataCreator():
             group_df = self.injuriesDf[self.injuriesDf['Id'] == player_id]
             recovery_index = self.get_recovery_index(group_df)
             recovery_indices.append(recovery_index)
-            return recovery_indices[0] if len(recovery_indices) == 1 else recovery_indices
+            return recovery_indices
         elif player_encoded_name is not None:
             groups = self.injuriesDf[self.injuriesDf['playerEncodedName'] == player_encoded_name].groupby(['Id'])
             if groups.ngroups == 0:
