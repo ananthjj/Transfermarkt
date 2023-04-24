@@ -17,6 +17,9 @@ class injuryDataCreator():
         self.injuriesDf = None
         self.fill = 0
 
+    def loadCsv(self, filename):
+        self.injuriesDf = pd.read_csv(filename)
+
     def load(self):
         data = {
             'playerEncodedName': [],
@@ -34,28 +37,24 @@ class injuryDataCreator():
                 self.add_injury_data(line.strip())
     
     def get(self, player_id=None, player_encoded_name=None):
+        recovery_indices = []
+        
         if player_id is not None:
-            groups = self.injuriesDf[self.injuriesDf['Id'] == player_id]
-            recovery_indices = {}
-            # for group_name, group_df in groups:
+            group_df = self.injuriesDf[self.injuriesDf['Id'] == player_id]
             recovery_index = self.get_recovery_index(group_df)
-            recovery_indices[0] = recovery_index
-            return recovery_indices
+            recovery_indices.append(recovery_index)
+            return recovery_indices[0] if len(recovery_indices) == 1 else recovery_indices
         elif player_encoded_name is not None:
             groups = self.injuriesDf[self.injuriesDf['playerEncodedName'] == player_encoded_name].groupby(['Id'])
             if groups.ngroups == 0:
-                return None
-            recovery_indices = {}
+                return recovery_indices
             for group_name, group_df in groups:
-                player_id, season = group_name
                 recovery_index = self.get_recovery_index(group_df)
-                if player_id in recovery_indices:
-                    recovery_indices[player_id][season] = recovery_index
-                else:
-                    recovery_indices[player_id] = {season: recovery_index}
-            return recovery_indices
+                recovery_indices.append(recovery_index)
+            return recovery_indices[0] if len(recovery_indices) == 1 else recovery_indices
         else:
-            return None
+            return recovery_indices
+
 
     def get_recovery_index(self, group_df):
         return 0
