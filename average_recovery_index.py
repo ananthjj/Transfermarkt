@@ -8,6 +8,7 @@ from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 import csv
 import pandas as pd
+from urllib.parse import urlparse
 
 urls = ['https://www.transfermarkt.us/marc-andre-ter-stegen/verletzungen/spieler/74857/', 'https://www.transfermarkt.us/ronald-araujo/verletzungen/spieler/480267', 'https://www.transfermarkt.us/andreas-christensen/verletzungen/spieler/196948']
 
@@ -103,8 +104,11 @@ class injuryDataCreator():
             'ligament problems': 28,
             'muscle fiber tear': 35,
             }
+        # print(filename)
+        
     def loadCsv(self, filename):
         self.injuriesDf = pd.read_csv(filename)
+        print(self.injuriesDf)
 
     def load(self):
         data = {
@@ -118,15 +122,25 @@ class injuryDataCreator():
             'gamesMissed': []
         }
         self.injuriesDf = pd.DataFrame(data)
-        with open(self.filename, 'r') as f:
+        with open(self.inputfile, 'r') as f:
             for line in f:
-                self.add_injury_data(line.strip())
+                print(line)
+                try:
+                    self.add_injury_data(line.strip())
+                except:
+                    print(line + " has no data")
+                    continue
     
     def get(self, player_id=None, player_encoded_name=None):
         recovery_indices = []
-        
         if player_id is not None:
+            # print(self.injuriesDf.dtypes)
+            # print(type(player_id))
+            if self.injuriesDf['Id'].dtype == int:
+                player_id = int(player_id)
+
             group_df = self.injuriesDf[self.injuriesDf['Id'] == player_id]
+            # print(group_df)
             recovery_index = self.get_recovery_index(group_df)
             recovery_indices.append(recovery_index)
             return recovery_indices
@@ -135,6 +149,7 @@ class injuryDataCreator():
             if groups.ngroups == 0:
                 return recovery_indices
             for group_name, group_df in groups:
+                print(group_df)
                 recovery_index = self.get_recovery_index(group_df)
                 recovery_indices.append(recovery_index)
             return recovery_indices[0] if len(recovery_indices) == 1 else recovery_indices
@@ -152,22 +167,23 @@ class injuryDataCreator():
         # Calculate the Recovery Index for each injury
         recovery_ratios = []
         for i, row in group_df.iterrows():
-            if row['dates_to'] is not None and row['dates_from'] is not None: # Only consider injuries with valid end dates
+            print(row)
+            if row['endDate'] is not None and row['startDate'] is not None: # Only consider injuries with valid end dates
                 # Increment the count of injuries in the season for the current injury
                 season = row['season']
                 seasons_dict[season]['count'] += 1
 
                 # Get the expected recovery time for the injury, default to 60 if not found
-                injury = row['injuries']
+                injury = row['injury']
                 expected_recovery_time = self.injury_recovery_times.get(injury.lower(), 60)
 
                 # Calculate the recovery ratio for the injury
-                days_out = row['days_out']
+                days_out = row['daysOut']
                 recovery_ratio = days_out / expected_recovery_time
 
                 # Calculate the weighted recovery ratio by multiplying the recovery ratio by the number of games missed (plus 1 to avoid division by zero)
-                games_missed = row['games_missed']
-                weighted_recovery_ratio = recovery_ratio * (games_missed + 1)
+                gamesMissed = row['gamesMissed']
+                weighted_recovery_ratio = recovery_ratio * (gamesMissed + 1)
 
                 # Append the weighted recovery ratio to the list of recovery ratios
                 recovery_ratios.append(weighted_recovery_ratio)
@@ -175,7 +191,7 @@ class injuryDataCreator():
         # Calculate the average recovery index
         total_count = sum([seasons_dict[season]['count'] for season in seasons_dict])
         if total_count > 0:
-            weighted_sum = sum([recovery_ratios[i] * group_df.iloc[i]['games_missed'] for i in range(len(recovery_ratios))])
+            weighted_sum = sum([recovery_ratios[i] * group_df.iloc[i]['gamesMissed'] for i in range(len(recovery_ratios))])
             index = weighted_sum / total_count
             return index
         return None
@@ -192,14 +208,16 @@ class injuryDataCreator():
             'gamesMissed': [gamesMissed]
         }
         new_row = pd.DataFrame(data)
-        self.injuriesDf = self.injuriesDf.append(new_row, ignore_index=True)
+        print(new_row)
+        self.injuriesDf = pd.concat([self.injuriesDf, new_row], ignore_index=True)
 
     def save(self, filename):
         self.injuriesDf.to_csv(filename)
 
     def add_injury_data(self, url):
+        # print(url)
         parsed_url = urlparse(url)
-        encoded_name = parsed_url.path.split('/')[2].replace('-', ' ')
+        encoded_name = parsed_url.path.split('/')[1].replace('-', ' ')
         player_id = parsed_url.path.split('/')[-1]
 
         options = Options()
@@ -234,7 +252,7 @@ class injuryDataCreator():
                     except ValueError:
                         date_to = None
                     
-                    add_data(self, encoded_name, player_id, f"{season_start}-{season_end}", cols[1].text.strip(), date_from, date_to, int(cols[4].text.strip().split(' ')[0]), int(cols[5].text.strip().replace('-', '0')))
+                    self.add_data(encoded_name, player_id, f"{season_start}-{season_end}", cols[1].text.strip(), date_from, date_to, int(cols[4].text.strip().split(' ')[0]), int(cols[5].text.strip().replace('-', '0')))
 
             # Check if there is a next page
             next_page = soup.find('li', {'class': 'tm-pagination__list-item--icon-next-page'})
