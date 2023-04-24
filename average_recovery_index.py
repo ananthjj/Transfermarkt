@@ -73,7 +73,14 @@ class injuryDataCreator():
         new_row = pd.DataFrame(data)
         self.injuriesDf = self.injuriesDf.append(new_row, ignore_index=True)
 
+    def save(self, filename):
+        self.injuriesDf.to_csv(filename)
+
     def add_injury_data(self, url):
+        parsed_url = urlparse(url)
+        encoded_name = parsed_url.path.split('/')[2].replace('-', ' ')
+        player_id = parsed_url.path.split('/')[-1]
+
         options = Options()
         options.headless = True  # run Chrome in headless mode
 
@@ -81,13 +88,6 @@ class injuryDataCreator():
         driver.get(url)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-
-        seasons = []
-        injuries = []
-        dates_from = []
-        dates_to = []
-        days_out = []
-        games_missed = []
 
         index = 0
 
@@ -103,23 +103,17 @@ class injuryDataCreator():
                     season = cols[0].text.strip()
                     season_start = int(season[:2]) + 2000
                     season_end = int(season[-2:]) + 2000
-                    seasons.append(f"{season_start}-{season_end}")
-                    injuries.append(cols[1].text.strip())
 
                     try:
                         date_from = datetime.strptime(cols[2].text.strip(), '%b %d, %Y').strftime('%Y-%m-%d')
                     except ValueError:
                         date_from = None
-                    dates_from.append(date_from)
-
                     try:
                         date_to = datetime.strptime(cols[3].text.strip(), '%b %d, %Y').strftime('%Y-%m-%d')
                     except ValueError:
                         date_to = None
-                    dates_to.append(date_to)
-
-                    days_out.append(int(cols[4].text.strip().split(' ')[0]))
-                    games_missed.append(int(cols[5].text.strip().replace('-', '0')))
+                    
+                    add_data(self, encoded_name, player_id, f"{season_start}-{season_end}", cols[1].text.strip(), date_from, date_to, int(cols[4].text.strip().split(' ')[0]), int(cols[5].text.strip().replace('-', '0')))
 
             # Check if there is a next page
             next_page = soup.find('li', {'class': 'tm-pagination__list-item--icon-next-page'})
