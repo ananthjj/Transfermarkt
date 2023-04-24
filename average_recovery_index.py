@@ -16,55 +16,63 @@ class injuryDataCreator():
         self.inputfile = filename
         self.injuriesDf = None
         self.fill = 0
-        if filename.split('.')[-1] == "txt":
-            self.fill = 1
-        elif filename.split('.')[-1] == "csv":
-            self.fill = 2
-
-    def get_file_extension(filename):
-        return filename.split('.')[-1]
 
     def load(self):
-        assert self.fill != 0, 'Fill cannot be zero.'
-        if self.fill == 2:
-            self.loadCsv()
-        else:
-            self.loadTxt()
-    
-    def loadCsv(self):
-        self.injuriesDf = pd.read_csv(self.filename)
-
-    def loadTxt(self):
         data = {
             'playerEncodedName': [],
             'Id': [],
-            'injuries': [],
-            'season': []
+            'season': [],
+            'injury': [],
+            'startDate': [],
+            'endDate': [],
+            'daysOut': [],
+            'gamesMissed': []
         }
         self.injuriesDf = pd.DataFrame(data)
         with open(self.filename, 'r') as f:
             for line in f:
                 self.add_injury_data(line.strip())
-        
-
-    def add_data(self, player_encoded_name, player_id, injuries, season):
-        match = self.injuriesDf[(self.injuriesDf['playerEncodedName'] == player_encoded_name) & (self.injuriesDf['season'] == season)]
-        if not match.empty:
-            # Replace existing row
-            index = match.index[0]
-            self.injuriesDf.loc[index, 'Id'] = player_id
-            self.injuriesDf.loc[index, 'injuries'] = injuries
+    
+    def get(self, player_id=None, player_encoded_name=None):
+        if player_id is not None:
+            groups = self.injuriesDf[self.injuriesDf['Id'] == player_id]
+            recovery_indices = {}
+            # for group_name, group_df in groups:
+            recovery_index = self.get_recovery_index(group_df)
+            recovery_indices[0] = recovery_index
+            return recovery_indices
+        elif player_encoded_name is not None:
+            groups = self.injuriesDf[self.injuriesDf['playerEncodedName'] == player_encoded_name].groupby(['Id'])
+            if groups.ngroups == 0:
+                return None
+            recovery_indices = {}
+            for group_name, group_df in groups:
+                player_id, season = group_name
+                recovery_index = self.get_recovery_index(group_df)
+                if player_id in recovery_indices:
+                    recovery_indices[player_id][season] = recovery_index
+                else:
+                    recovery_indices[player_id] = {season: recovery_index}
+            return recovery_indices
         else:
-            # Add new row
-            data = {
-                'playerEncodedName': [player_encoded_name],
-                'Id': [player_id],
-                'injuries': [injuries],
-                'season': [season]
-            }
-            new_row = pd.DataFrame(data)
-            self.injuriesDf = self.injuriesDf.append(new_row, ignore_index=True)
+            return None
 
+    def get_recovery_index(self, group_df):
+        return 0
+
+    def add_data(self, player_encoded_name, player_id, season, injury, startDate, endDate, daysOut, gamesMissed):
+        data = {
+            'playerEncodedName': [player_encoded_name],
+            'Id': [player_id],
+            'season': [season],
+            'injury': [injury],
+            'startDate': [startDate],
+            'endDate': [endDate],
+            'daysOut': [daysOut],
+            'gamesMissed': [gamesMissed]
+        }
+        new_row = pd.DataFrame(data)
+        self.injuriesDf = self.injuriesDf.append(new_row, ignore_index=True)
 
     def add_injury_data(self, url):
         options = Options()
