@@ -1,5 +1,5 @@
-# Author: ananthjj
-# Date: 4/20/23
+# Author: ananthjj and MGabeD
+# Date: 4/24/23
 # Transfermarkt.us Detailed Injury History Web Scraper with Average Recovery Index
 
 from datetime import datetime
