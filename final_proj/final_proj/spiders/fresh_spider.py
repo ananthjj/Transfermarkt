@@ -2,6 +2,12 @@ from pathlib import Path
 import scrapy
 
 class FreshSpider(scrapy.Spider):
+    # chat gpt failed to do this correctly, it is all parsed together versions from over 10 failed attempts
+    # gpt failed to understand how the webpage was structured even when given all the elements so a more boiler
+    # plate version was created by Gabe to crawl everything necessary to find player profils instead of the selinium
+    # or xpath operations chat gpt kept attempting to do
+    # some vestigial code was kept to show the elements which it tried to build and our submission contains an entire
+    # compressed folder with all of the failed attempts and data files linked on drive
     name = "fresh_spider"
     allowed_domains = ["transfermarkt.com"]
     start_urls = ["https://www.transfermarkt.com"]

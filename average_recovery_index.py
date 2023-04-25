@@ -17,6 +17,8 @@ class injuryDataCreator():
         self.inputfile = filename
         self.injuriesDf = None
         self.fill = 0
+        # Injury recovery times created by Ananth with the support of ChatGpt's 
+        # recommendations for how long it takes to heal from an injury
         self.injury_recovery_times = {
             'abdominal influenza': 60,
             'cold': 6,
@@ -106,11 +108,15 @@ class injuryDataCreator():
             }
         # print(filename)
         
+    # Boiler Plate Code written by Gabe Denton (could have used Chat Gpt but it is four lines)
     def loadCsv(self, filename):
         self.injuriesDf = pd.read_csv(filename)
         print(self.injuriesDf)
 
     def load(self):
+        # This code was first attempted with chat gpt but its response did not work
+        # as it used .append which was depreciated from pandas, it also made a mild logical error
+        # written with Ai support by Gabe
         data = {
             'playerEncodedName': [],
             'Id': [],
@@ -125,6 +131,10 @@ class injuryDataCreator():
         with open(self.inputfile, 'r') as f:
             for line in f:
                 print(line)
+                # Chat Gpt kept saying to ignore the error here and do handling lower down in the recursion
+                # We kept it for simplicity of our prints and added the "has no data" because if everything
+                # runs as it did in our testing that should be the only time it occurs if correct URLs are 
+                # input
                 try:
                     self.add_injury_data(line.strip())
                 except:
@@ -132,15 +142,17 @@ class injuryDataCreator():
                     continue
     
     def get(self, player_id=None, player_encoded_name=None):
+        # Initial function written by chat gpt it failed to understand the purpose of the function
+        # significant revisions were necessary. Chat Gpt gave great boiler plate code but failed to
+        # get the specific structure of our data correct and would change it in each request.
+        # These errors included which keys were unique and what needed to be called on
+        # Written with chatgpt's support by gabe denton
         recovery_indices = []
         if player_id is not None:
-            # print(self.injuriesDf.dtypes)
-            # print(type(player_id))
             if self.injuriesDf['Id'].dtype == int:
                 player_id = int(player_id)
 
             group_df = self.injuriesDf[self.injuriesDf['Id'] == player_id]
-            # print(group_df)
             recovery_index = self.get_recovery_index(group_df)
             recovery_indices.append(recovery_index)
             return recovery_indices
@@ -158,12 +170,14 @@ class injuryDataCreator():
 
 
     def get_recovery_index(self, group_df):
-        
-        # Create a dictionary to keep track of injuries in the same season
+        # written with chat gpt's support by ananth 
+
+        # seasons_dict created manually
         seasons_dict = {}
         for season in group_df['season'].unique():
             seasons_dict[season] = {'count': 0}
 
+        # Rest of this code was written by Chat Gpt with clever prompting by Ananth
         # Calculate the Recovery Index for each injury
         recovery_ratios = []
         for i, row in group_df.iterrows():
@@ -197,6 +211,8 @@ class injuryDataCreator():
         return None
 
     def add_data(self, player_encoded_name, player_id, season, injury, startDate, endDate, daysOut, gamesMissed):
+        # written with chat gpt's support and only a few prompts to get this exact function
+        # written by Gabe (using GPT)
         data = {
             'playerEncodedName': [player_encoded_name],
             'Id': [player_id],
@@ -211,9 +227,11 @@ class injuryDataCreator():
         print(new_row)
         self.injuriesDf = pd.concat([self.injuriesDf, new_row], ignore_index=True)
 
+    # Boiler plate written by Gabe
     def save(self, filename):
         self.injuriesDf.to_csv(filename)
 
+    # written by Ananth with Chat gpt support
     def add_injury_data(self, url):
         # print(url)
         parsed_url = urlparse(url)
@@ -233,9 +251,12 @@ class injuryDataCreator():
         recovery_indices = []
 
         while True:
+            # Chat gpt failed to get the soup calls and orginization correct
+            # had to be manually fixed by ananth
             table = soup.find('table', {'class': 'items'})
             rows = table.find_all('tr', {'class': ['odd', 'even', 'odd selected','even selected']})
 
+            # upon giving it the cols = row.find_all chatgpt when asked to write the rest it successfully did
             for row in rows:
                 cols = row.find_all('td')
                 if len(cols) >= 6:

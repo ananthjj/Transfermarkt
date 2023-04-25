@@ -1,3 +1,5 @@
+
+# This file was updated from parts of chat gpt responses by Gabe
 filename = "test1.txt"
 output_file = "output.txt"
 suffix = 0

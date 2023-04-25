@@ -4,6 +4,9 @@ import re
 input_file = 'output2.txt'
 output_file = 'final.txt'
 
+# The entirety of this file was written with chat gpt's support
+# written by gabe (with chat gpt)
+
 # Check if output file already exists
 if os.path.isfile(output_file):
     i = 0
@@ -15,6 +18,7 @@ if os.path.isfile(output_file):
 with open(input_file, 'r') as f:
     urls = f.readlines()
 
+# This had to be fixed as it failed to get the proper indexing for injury pages but the outline was correct
 correct_format_urls = set()
 for url in urls:
     if 'spieler' in url:

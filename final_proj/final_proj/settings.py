@@ -22,6 +22,7 @@ NEWSPIDER_MODULE = 'final_proj.spiders'
 ROBOTSTXT_OBEY = True
 RETRY_TIMES = 3
 
+# chat gpt could not find this fix naturally had to be found on stack overflow by Gabe
 USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36"
 
 COOKIES_ENABLED = False

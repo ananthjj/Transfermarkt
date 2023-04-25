@@ -1,5 +1,5 @@
 from average_recovery_index import injuryDataCreator
-
+# this function was written by chat gpt
 def check_input_type(input_str):
     try:
         # Try to convert the input string to an integer
@@ -8,7 +8,10 @@ def check_input_type(input_str):
     except ValueError:
         # If the above fails, it means the input string is not an integer
         return "str"
-
+    
+# this was written manually as the scraper was esentially destroying my computer 
+# and using all the resources I had available
+# written by Gabe
 print("Please enter Y if you have a new text file to insert into the df")
 YorN = input('y/n: ')
 if YorN == "y" or YorN == "Y":
